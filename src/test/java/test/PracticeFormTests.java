@@ -4,6 +4,7 @@ import jdk.jfr.Description;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Keys;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,7 +17,7 @@ import static com.codeborne.selenide.Selenide.*;
 
 public class PracticeFormTests extends TestBase{
     private static final String formUrl = "/automation-practice-form";
-    private static final Set<Integer> numFieldsForShortSubmit = new HashSet<>(Set.of(1,3,4,5));
+    private static final Set<Integer> numFieldsForShortSubmit = new HashSet<>(Set.of(1,3,4));
     private static final LinkedHashMap<String, String> correctFormData = new LinkedHashMap<>(){{
         put("Student Name", "firstName lastName");
         put("Student Email", "user@email.com");
@@ -30,29 +31,57 @@ public class PracticeFormTests extends TestBase{
         put("State and City", "NCR Delhi");
     }};
 
+    @Test
+    @Description("Негативная проверка на неправильное заполенние телефона")
+    void negativePhoneErrorPracticeFormTest(){
+        open(formUrl);
+        $(byId("firstName")).setValue(correctFormData.get("Student Name").split(" ")[0]);
+        $(byId("lastName")).setValue(correctFormData.get("Student Name").split(" ")[1]);
+        $(byId("genterWrapper")).$(byValue(correctFormData.get("Gender"))).click();
+        $(byId("userNumber")).setValue("qwert");
+        $(byId("submit")).click();
+        $(byId("userNumber")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+    }
 
+    @Test
+    @Description("Негативная проверка на неправильное заполнение почты")
+    void negativeMailErrorPracticeFormTest(){
+        open(formUrl);
+        $(byId("firstName")).setValue(correctFormData.get("Student Name").split(" ")[0]);
+        $(byId("lastName")).setValue(correctFormData.get("Student Name").split(" ")[1]);
+        $(byId("genterWrapper")).$(byValue(correctFormData.get("Gender"))).click();
+        $(byId("userNumber")).setValue(correctFormData.get("Mobile"));
+        $(byId("userEmail")).setValue("qwerty");
+        $(byId("submit")).click();
+        $(byId("userEmail")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+    }
+
+    @Test
+    @Description("Негативная проверка на незаполнение всех обязательных полей")
+    void negativeShortSubmitPracticeFormTest(){
+        open(formUrl);
+        $(byId("submit")).click();
+        $(byId("firstName")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+        $(byId("lastName")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+        $(byId("gender-radio-1")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+        $(by("for","gender-radio-1")).shouldHave(cssValue("color", "rgba(220, 53, 69, 1)"));
+        $(byId("gender-radio-2")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+        $(by("for","gender-radio-2")).shouldHave(cssValue("color", "rgba(220, 53, 69, 1)"));
+        $(byId("gender-radio-3")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+        $(by("for","gender-radio-3")).shouldHave(cssValue("color", "rgba(220, 53, 69, 1)"));
+        $(byId("userNumber")).shouldHave(cssValue("border-color", "rgb(220, 53, 69)"));
+    }
 
     @Test
     @Description("Позитивно проверяются только обязательные поля формы")
     void positiveShortSubmitPracticeFormTest(){
-
         open(formUrl);
         $(byId("firstName")).setValue(correctFormData.get("Student Name").split(" ")[0]);
-
         $(byId("lastName")).setValue(correctFormData.get("Student Name").split(" ")[1]);
-
         $(byId("genterWrapper")).$(byValue(correctFormData.get("Gender"))).click();
         $(byId("userNumber")).setValue(correctFormData.get("Mobile"));
-
-        $(byId("dateOfBirthInput")).click();
-        $(byClassName("react-datepicker__year-select")).selectOption(correctFormData.get("Date of Birth").split(",")[1]);
-        $(byClassName("react-datepicker__month-select")).selectOption(correctFormData.get("Date of Birth").split(",")[0].split(" ")[1]);
-        $(byClassName("react-datepicker__month")).$(byText(correctFormData.get("Date of Birth").split(",")[0].split(" ")[0])).click();
-
         $(byId("submit")).click();
-
         $(byClassName("table-responsive")).should(appear);
-
         $(byClassName("table-responsive")).$("tbody").$$("tr").forEach(x->{
             String key = x.$$("td").get(0).text();
             Integer numField = (new ArrayList<>(correctFormData.keySet())).indexOf(key) + 1;
