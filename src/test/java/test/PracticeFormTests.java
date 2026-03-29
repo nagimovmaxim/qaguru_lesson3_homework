@@ -1,22 +1,23 @@
 package test;
 
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.SelenideElement;
+import jdk.jfr.Description;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Keys;
 
 import java.io.File;
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Set;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.*;
-import static com.codeborne.selenide.SetValueOptions.withDate;
 
 public class PracticeFormTests extends TestBase{
     private static final String formUrl = "/automation-practice-form";
-    private static final HashMap<String, String> correctFormData = new HashMap<>(){{
+    private static final Set<Integer> numFieldsForShortSubmit = new HashSet<>(Set.of(1,3,4,5));
+    private static final LinkedHashMap<String, String> correctFormData = new LinkedHashMap<>(){{
         put("Student Name", "firstName lastName");
         put("Student Email", "user@email.com");
         put("Gender", "Other");
@@ -28,8 +29,43 @@ public class PracticeFormTests extends TestBase{
         put("Address", "currentAddress");
         put("State and City", "NCR Delhi");
     }};
+
+
+
     @Test
-    void positiveSubmitPracticeFormTest(){
+    @Description("Позитивно проверяются только обязательные поля формы")
+    void positiveShortSubmitPracticeFormTest(){
+
+        open(formUrl);
+        $(byId("firstName")).setValue(correctFormData.get("Student Name").split(" ")[0]);
+
+        $(byId("lastName")).setValue(correctFormData.get("Student Name").split(" ")[1]);
+
+        $(byId("genterWrapper")).$(byValue(correctFormData.get("Gender"))).click();
+        $(byId("userNumber")).setValue(correctFormData.get("Mobile"));
+
+        $(byId("dateOfBirthInput")).click();
+        $(byClassName("react-datepicker__year-select")).selectOption(correctFormData.get("Date of Birth").split(",")[1]);
+        $(byClassName("react-datepicker__month-select")).selectOption(correctFormData.get("Date of Birth").split(",")[0].split(" ")[1]);
+        $(byClassName("react-datepicker__month")).$(byText(correctFormData.get("Date of Birth").split(",")[0].split(" ")[0])).click();
+
+        $(byId("submit")).click();
+
+        $(byClassName("table-responsive")).should(appear);
+
+        $(byClassName("table-responsive")).$("tbody").$$("tr").forEach(x->{
+            String key = x.$$("td").get(0).text();
+            Integer numField = (new ArrayList<>(correctFormData.keySet())).indexOf(key) + 1;
+            if (numFieldsForShortSubmit.contains(numField)) {
+                x.$$("td").get(1).shouldHave(text(correctFormData.get(key)));
+            }
+        });
+    }
+
+
+    @Test
+    @Description("Позитивно проверяются все поля формы, а не только обязательные")
+    void positiveFullSubmitPracticeFormTest(){
 
         open(formUrl);
         $(byId("firstName")).setValue(correctFormData.get("Student Name").split(" ")[0]);
