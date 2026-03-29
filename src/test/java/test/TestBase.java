@@ -11,7 +11,7 @@ import static com.codeborne.selenide.Selenide.closeWebDriver;
 public class TestBase {
     @BeforeAll
     static void setUp(){
-        headless = false;
+        headless = true;
         browserSize = "2560x1440";
         browser = "chrome";
         browserVersion = "latest";
