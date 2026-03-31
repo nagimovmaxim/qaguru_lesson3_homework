@@ -113,12 +113,15 @@ public class PracticeFormTests extends TestBase{
         $(byClassName("react-datepicker__month")).$(byText(correctFormData.get("Date of Birth").split(",")[0].split(" ")[0])).click();
 
         $(byId("subjectsInput")).sendKeys(correctFormData.get("Subjects"));
-        $("[aria-activedescendant=react-select-2-option-0]").should(appear)
-                .shouldHave(attribute("value",correctFormData.get("Subjects"))).sendKeys(Keys.ENTER);
+        //странно, у меня этот селектор появляется и тест отрабатывает. Подтверждение: src\test\resources\stranno.png
+        //$("[aria-activedescendant=react-select-2-option-0]").should(appear).shouldHave(attribute("value",correctFormData.get("Subjects"))).sendKeys(Keys.ENTER);
+        //вот то же самое без захвата селектора aria-activedescendant:
+        $(byAttribute("value",correctFormData.get("Subjects"))).should(appear).sendKeys(Keys.ENTER);
 
         $(byId("hobbiesWrapper")).$(byText(correctFormData.get("Hobbies"))).click();
 
-        $(byId("uploadPicture")).uploadFile(new File("src/test/resources/" + correctFormData.get("Picture")));
+        //$(byId("uploadPicture")).uploadFile(new File("src/test/resources/" + correctFormData.get("Picture")));
+        $(byId("uploadPicture")).uploadFromClasspath( correctFormData.get("Picture"));
 
         $("textarea[id=currentAddress]").setValue(correctFormData.get("Address"));
 
